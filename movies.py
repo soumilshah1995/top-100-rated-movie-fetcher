@@ -1,33 +1,75 @@
-from bs4 import BeautifulSoup
-from urllib.request import urlopen
-print('''Enter any year from 1950 to current year
- and get top 100 movies with ranking according to critics ratings
- ratings are subject to blogs/major critics like imdb metacritic and rotten tomatoes all over the internet
- to get a list of best movies of all time enter 0''')
-strr=input("input year : ")
-url='https://www.rottentomatoes.com/top/bestofrt/?year='+strr
-if strr=='0':
-    url='https://www.rottentomatoes.com/top/bestofrt/'
-client=urlopen(url)
-page_html=client.read()
-soup=BeautifulSoup(page_html,'html.parser')
-client.close()
-containe=soup.find('table',class_='table')
-movie_names=containe.find_all(class_='unstyled articleLink')
-j=0
-movie_ratings=containe.find_all('span',class_='tMeterScore')
-filename="movies_"+strr+".csv"
-f=open(filename,'w')
-f.write("S.No, Name , Ratings\n")
-for i in range(0,100):
+try:
+    from bs4 import BeautifulSoup
+    from urllib.request import urlopen
+    import pandas as pd
 
-    f.write(str((i+1))+","+movie_names[i].string.strip()+","+movie_ratings[i].string+"\n")
-    print('''
-    
-    
-    ''')
-    print(str((i+1))+".)"+"Name : "+movie_names[i].string.strip())
-    print('')
-    print(" Ratings : "+movie_ratings[i].string+"/100",end=' ')
+except Exception as e:
+    print("Some Modules are Missing {}".format(e))
 
-f.close()
+
+class Stack(object):
+
+    def __init__(self):
+        self.data = []
+
+
+class WebCrawler(object):
+
+    def __init__(self, year):
+
+        self.year = year
+        self.base_url = "https://www.rottentomatoes.com/top/bestofrt/?year="+str(self.year)
+        self.client = urlopen(self.base_url)
+        self.stack = Stack()
+
+    def scrapper(self):
+
+        page_html=self.client.read()
+        soup=BeautifulSoup(page_html, 'html.parser')
+        self.client.close()
+        containe = soup.find('table',  class_='table')
+
+        movie_names = containe.find_all(class_='unstyled articleLink')
+        movie_ratings=containe.find_all('span',class_='tMeterScore')
+
+        name = []
+        rating = []
+
+        for i in range(0,100):
+            name.append(movie_names[i].string.strip())
+            Tem = movie_ratings[i].string
+            rating.append(Tem)
+
+        df = pd.DataFrame(data={
+            "Movie":name,
+            "Rating":rating
+            })
+        return df
+
+
+
+class MovieRatings(object):
+
+    def __init__(self, year):
+        self.year = year
+        self.webcrawler = WebCrawler(year=year)
+        self.stack  = Stack()
+        self.df = self.webcrawler.scrapper()
+
+    def PrintData(self):
+        print(self.df)
+
+    def saveAsCsv(self):
+        self.df.to_csv("Movies.csv")
+
+    def saveAsJson(self):
+        self.df.to_json("Movie.json")
+
+
+if __name__ == "__main__":
+    obj = MovieRatings(year=2019)
+    obj.saveAsCsv()
+    obj.saveAsJson()
+
+
+
