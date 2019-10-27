@@ -8,7 +8,6 @@ except Exception as e:
 
 
 class Stack(object):
-
     def __init__(self):
         self.data = []
 
@@ -32,20 +31,15 @@ class WebCrawler(object):
         movie_names = containe.find_all(class_='unstyled articleLink')
         movie_ratings=containe.find_all('span',class_='tMeterScore')
 
-        name = []
-        rating = []
-
         for i in range(0,100):
-            name.append(movie_names[i].string.strip())
-            Tem = movie_ratings[i].string
-            rating.append(Tem)
 
-        df = pd.DataFrame(data={
-            "Movie":name,
-            "Rating":rating
-            })
-        return df
+            data = "{}={}".format(movie_names[i].string.strip(),
+                                  movie_ratings[i].string)
 
+            data = tuple(data.split("="))
+            self.stack.data.append(data)
+
+        return self.stack
 
 
 class MovieRatings(object):
@@ -53,23 +47,27 @@ class MovieRatings(object):
     def __init__(self, year):
         self.year = year
         self.webcrawler = WebCrawler(year=year)
-        self.stack  = Stack()
-        self.df = self.webcrawler.scrapper()
+        self.stack = self.webcrawler.scrapper()
 
     def PrintData(self):
-        print(self.df)
+        print(self.stack.data)
+        df = pd.DataFrame(self.stack.data, columns=["Title", "Ratings"])
+        print(df)
 
     def saveAsCsv(self):
-        self.df.to_csv("Movies.csv")
+        df = pd.DataFrame(self.stack.data, columns=["Title", "Ratings"])
+        df.to_csv("Movies.csv")
+        print("Created csv File ")
 
     def saveAsJson(self):
-        self.df.to_json("Movie.json")
+        df = pd.DataFrame(self.stack.data, columns=["Title", "Ratings"])
+        df.to_json("Movie.json")
+        print("saved a json file ")
 
 
 if __name__ == "__main__":
     obj = MovieRatings(year=2019)
     obj.saveAsCsv()
-    obj.saveAsJson()
 
 
 
