@@ -51,8 +51,6 @@ class MovieRatings(object):
 
     def PrintData(self):
         print(self.stack.data)
-        df = pd.DataFrame(self.stack.data, columns=["Title", "Ratings"])
-        print(df)
 
     def saveAsCsv(self):
         df = pd.DataFrame(self.stack.data, columns=["Title", "Ratings"])
@@ -63,11 +61,4 @@ class MovieRatings(object):
         df = pd.DataFrame(self.stack.data, columns=["Title", "Ratings"])
         df.to_json("Movie.json")
         print("saved a json file ")
-
-
-if __name__ == "__main__":
-    obj = MovieRatings(year=2019)
-    obj.saveAsCsv()
-
-
 
